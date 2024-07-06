@@ -1,4 +1,4 @@
-const API_KEY = "b8ae9a851d5f90e11e50c61bd4887d00";
+const API_KEY = process.env.API_KEY;
 const API_URL = "https://api.themoviedb.org/3";
 
 let surl, query;
