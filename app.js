@@ -1,20 +1,32 @@
-const API_KEY = process.env.API_KEY;
+const API_KEY = "b8ae9a851d5f90e11e50c61bd4887d00";
 const API_URL = "https://api.themoviedb.org/3";
+let sessionId;
 
-let surl, query;
-let type = "movie";
+document.addEventListener("DOMContentLoaded", createGuestSession);
 
-document
-  .getElementById("search-button")
-  .addEventListener("click", searchMovies);
-document
-  .getElementById("filter-button")
-  .addEventListener("click", filterMovies);
+document.getElementById("search-button").addEventListener("click", searchMovies);
+document.getElementById("filter-button").addEventListener("click", filterMovies);
+
+async function createGuestSession() {
+  try {
+    const response = await fetch(`${API_URL}/authentication/guest_session/new?api_key=${API_KEY}`);
+    const data = await response.json();
+    sessionId = data.guest_session_id;
+    console.log("Guest session created:", sessionId);
+  } catch (error) {
+    console.error("Error creating guest session:", error);
+  }
+}
 
 async function fetchMovies(url) {
-  const response = await fetch(url);
-  const data = await response.json();
-  return data.results;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.results;
+  } catch (error) {
+    console.error("Error fetching movies:", error);
+    return [];
+  }
 }
 
 function displayMovies(movies, type) {
@@ -29,20 +41,18 @@ function displayMovies(movies, type) {
       card.classList.add("card");
       if (movie.poster_path) {
         card.innerHTML = `
-      <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path} " alt="${
-          movie.title
-        }">
-      <h3>${movie.title}</h3>
-      <p>${movie.release_date ? movie.release_date.split("-")[0] : "N/A"}</p>
-      <p>${movie.overview}</p>
-    `;
+          <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path}" alt="${movie.title}">
+          <h3>${movie.title}</h3>
+          <p>${movie.release_date ? movie.release_date.split("-")[0] : "N/A"}</p>
+          <p>${movie.overview}</p>
+        `;
       } else {
         card.innerHTML = `
-      <img src="Analogue Rickroll Poster.jpeg" alt="${movie.title}">
-      <h3>${movie.title}</h3>
-      <p>${movie.release_date ? movie.release_date.split("-")[0] : "N/A"}</p>
-      <p>${movie.overview}</p>
-    `;
+          <img src="Analogue Rickroll Poster.jpeg" alt="${movie.title}">
+          <h3>${movie.title}</h3>
+          <p>${movie.release_date ? movie.release_date.split("-")[0] : "N/A"}</p>
+          <p>${movie.overview}</p>
+        `;
       }
       card.appendChild(a);
       results.appendChild(card);
@@ -55,15 +65,11 @@ function displayMovies(movies, type) {
       a.innerHTML = "Stream";
       card.classList.add("card");
       card.innerHTML = `
-      <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path} " alt="${
-        movie.name
-      }">
-      <h3>${movie.name}</h3>
-      <p>${
-        movie.first_air_date ? movie.first_air_date.split("-")[0] : "N/A"
-      }</p>
-      <p>${movie.overview}</p>
-    `;
+        <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path}" alt="${movie.name}">
+        <h3>${movie.name}</h3>
+        <p>${movie.first_air_date ? movie.first_air_date.split("-")[0] : "N/A"}</p>
+        <p>${movie.overview}</p>
+      `;
       card.appendChild(a);
       results.appendChild(card);
     });
@@ -71,28 +77,25 @@ function displayMovies(movies, type) {
 }
 
 async function searchMovies() {
-  query = document.getElementById("search-input").value;
+  const query = document.getElementById("search-input").value;
   if (query) {
-    surl = `${API_URL}/search/movie?api_key=${API_KEY}&query=${query}`;
-    const movies = await fetchMovies(surl);
-    displayMovies(movies, type);
+    const url = `${API_URL}/search/movie?api_key=${API_KEY}&query=${query}`;
+    const movies = await fetchMovies(url);
+    displayMovies(movies, "movie");
   }
 }
 
 async function filterMovies() {
   const year = document.getElementById("year-input").value;
-  type = document.getElementById("type-select").value;
-  if (surl) {
-    surl = `${API_URL}/search/movie?api_key=${API_KEY}&query=${query}`;
-    if (year) surl += `&primary_release_year=${year}`;
+  const type = document.getElementById("type-select").value;
+  const query = document.getElementById("search-input").value;
 
-    if (type === "tv") {
-      surl = `${API_URL}/search/tv?api_key=${API_KEY}&query=${query}`;
-      if (year) surl += `&first_air_date_year = ${year}`;
-      const movies = await fetchMovies(surl);
-      displayMovies(movies, type);
-    }
-    const movies = await fetchMovies(surl);
+  if (query) {
+    let url = `${API_URL}/search/${type}?api_key=${API_KEY}&query=${query}`;
+    if (type === "movie" && year) url += `&primary_release_year=${year}`;
+    if (type === "tv" && year) url += `&first_air_date_year=${year}`;
+
+    const movies = await fetchMovies(url);
     displayMovies(movies, type);
   }
 }
