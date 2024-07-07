@@ -79,7 +79,7 @@ function displayMovies(movies, type) {
 async function searchMovies() {
   const query = document.getElementById("search-input").value;
   if (query) {
-    const url = `${API_URL}/search/movie?api_key=${API_KEY}&query=${query}`;
+    const url = `${API_URL}/search/movie?api_key=${API_KEY}&query=${query}&guest_session_id=${sessionId}`;
     const movies = await fetchMovies(url);
     displayMovies(movies, "movie");
   }
@@ -91,7 +91,7 @@ async function filterMovies() {
   const query = document.getElementById("search-input").value;
 
   if (query) {
-    let url = `${API_URL}/search/${type}?api_key=${API_KEY}&query=${query}`;
+    let url = `${API_URL}/search/${type}?api_key=${API_KEY}&query=${query}&guest_session_id=${sessionId}`;
     if (type === "movie" && year) url += `&primary_release_year=${year}`;
     if (type === "tv" && year) url += `&first_air_date_year=${year}`;
 
